@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# This code will prepare the hosts to be part of a Kubernetes cluster.
+# This script will prepare the hosts to be part of a Kubernetes cluster.
 # It applies to both managers and nodes. If your cluster consists of VMs of some flavor,
 # it can be used to build a template, so it only has to be run once.
 #

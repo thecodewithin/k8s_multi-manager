@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# This code will prepare the software load balancer for the control plane
+# This script will prepare the software load balancer for the control plane
 # and start the cluster on the first node
 # Then it will allow your non-root user to interact with it and install a 
 # Container Network Interface (CNI)

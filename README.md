@@ -45,7 +45,7 @@ The hosts:
 
 When creating a multi-master Kubernetes cluster, a load balancer for the kube-apiserver is needed, so reserve an IP in your network with a corresponding FQDN. In this example I'll use 192.168.1.130, paired with k8sclps1.example.com.
 
-You should also add your non-root user to the `docker` group. You can have `run-prereq.sh` do it for you by commenting out that line on the code and substituting your user name in it.
+You should also add your non-root user to the `docker` group. You can have `run-prereq.sh` do it for you by uncommenting that line on the script and substituting your user name in it.
 
 ### On all hosts
 
@@ -226,7 +226,7 @@ kube-system   kube-proxy-f5h8k                         1/1     Running   0      
 kube-system   kube-scheduler-k8sclp01                 1/1     Running   0          2m58s
 kube-system   kube-vip-k8sclp01                       1/1     Running   0          2m57s
 ```
-#### Add the other managers to the control plane
+### Add the other managers to the control plane
 
 Now, on each of the remaining managers, create the kube-apiserver load balancer's configuration file. Be careful to change the `localPeer` configuration and to set `startAsLeader` to `false` for each of them.
 
@@ -397,7 +397,7 @@ thecodewithin@k8sclp02:~$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 And then the same for the third one.
 
-#### Add the nodes to the cluster
+### Add the nodes to the cluster
 
 On each of them, execute the `kubeadm join <...>` command:
 
