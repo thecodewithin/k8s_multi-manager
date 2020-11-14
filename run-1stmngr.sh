@@ -15,10 +15,9 @@ sudo kubeadm init --pod-network-cidr=10.100.0.0/16 --control-plane-endpoint "k8s
 # Allowing your regular user to interact with the cluster 
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-# Installing Calico as Container Network Interface, as recoommended in the documentation here:
+# Installing Calico as Container Network Interface, as recommended in the documentation here:
 # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network
 kubectl apply -f https://docs.projectcalico.org/v3.16/manifests/calico.yaml
 
