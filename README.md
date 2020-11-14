@@ -32,7 +32,7 @@ The hosts:
 
  1. As root (not with sudo, mind you) run `run-prereq.sh` on all your cluster hosts, managers and nodes alike
  1. Reserve an IP in your network for your control plane's VIP
- 1. Add your non-root user to the `docker` group and switch to your non-root user
+ 1. Add your non-root user to the `docker` group and switch to your non-root user  
     `usermod -G docker <your-non-root-user>`
  1. Create a `/etc/kube-vip/config.yaml` file for the "Kube-VIP" on each manager (see below)
  1. Run `run-1stmngr.sh` on the first manager
