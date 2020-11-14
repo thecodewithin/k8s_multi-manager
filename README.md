@@ -1,6 +1,6 @@
 # k8s_multi-manager
 
-*Deploying a multi-manager Kubernetes cluster, step by step.*
+*My first (kinda successful) try at deploying a multi-manager Kubernetes cluster, step by step.*
 
 ***
 
