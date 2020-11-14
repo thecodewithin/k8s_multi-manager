@@ -15,6 +15,7 @@ My setup:
  - **container runtime**: Docker
  - **software load balancing**: kube-vip
  - **cluster approach**: stacked control plane nodes
+ - **Container Network Interface**: Calico
 
 The hosts:
 
