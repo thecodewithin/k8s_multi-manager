@@ -206,7 +206,7 @@ Take note of the two `kubeadm join <...>` commands. You'll need them in a moment
 
 #### Check the pods
 
-Give the newly started cluster a few moments and then check wether all the pods are running. Run this command as a regular user:
+Give the newly started cluster a few moments and then check whether all the pods are running. Run this command as a regular user:
 
 ```
 thecodewithin@k8sclp01:~$ kubectl get pods --all-namespaces
