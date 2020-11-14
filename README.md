@@ -228,9 +228,9 @@ kube-system   kube-vip-k8sclp01                       1/1     Running   0       
 ```
 ### Add the other managers to the control plane
 
-Now, on each of the remaining managers, create the kube-apiserver load balancer's configuration file. Be careful to change the `localPeer` configuration and to set `startAsLeader` to `false` for each of them.
+Now, on each of the remaining managers, create the kube-apiserver load balancer's configuration file. Be careful to change the `localPeer` and `remotePeers` configurations and to set `startAsLeader` to `false` for each of them.
 
-Then create the manifests. See my examples below.
+Then create the manifests. See examples below.
 
 This is for the second manager:
 
@@ -275,6 +275,7 @@ loadBalancers:
 ```
 thecodewithin@k8sclp02:~$ docker run -it --rm plndr/kube-vip:0.1.1 /kube-vip sample manifest     | sed "s|plndr/kube-vip:'|plndr/kube-vip:0.1.1'|"     | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
 ```
+
 And for the third one:
 
 ```
@@ -318,6 +319,7 @@ loadBalancers:
 ```
 thecodewithin@k8sclp03:~$ docker run -it --rm plndr/kube-vip:0.1.1 /kube-vip sample manifest     | sed "s|plndr/kube-vip:'|plndr/kube-vip:0.1.1'|"     | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
 ```
+
 Now we can join the managers to the cluster.
 
 First on the second manager:
@@ -395,13 +397,11 @@ thecodewithin@k8sclp02:~$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/conf
 thecodewithin@k8sclp02:~$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
-And then the same for the third one.
+And then repeat for the third one.
 
 ### Add the nodes to the cluster
 
-On each of them, execute the `kubeadm join <...>` command:
-
-Here's the example for the first node:
+On each of them, execute the `kubeadm join <...>` command. Here's the example for the first node:
 
 ```
 thecodewithin@k8sclp04:~$ sudo kubeadm join k8sclps1:8443 --token rgh8a9.vh1mzx5l9m79c38a     --discovery-token-ca-cert-hash sha256:b78bbe13037b9bb03640051cdf1d5037566db5b31e6a5dd80c6ca5274ad72094
@@ -424,7 +424,7 @@ Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 
 Repeat for each of your other nodes.
 
-When finished, check that the nodes are added to the cluster. Go back to one of the managers and list the cluster's nodes:
+When finished, check that all the nodes have been added to the cluster. Go back to one of the managers and list the cluster's nodes:
 
 ```
 thecodewithin@k8sclp01:~$ kubectl get nodes
