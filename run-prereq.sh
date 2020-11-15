@@ -34,7 +34,7 @@ curl https://get.docker.com | bash
 
 # Optional. Uncomment if you want to execute `docker` commands without sudo
 # Substitute your non-root user for "<your-user>" 
-#usermod -G docker <your-user>
+#usermod -aG docker <your-user>
 
 # This comes handy if you are going to deploy an ELK stack in this cluster.
 # Feel free to comment it out otherwise.
