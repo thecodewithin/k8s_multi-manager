@@ -17,7 +17,9 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
+# Depending on your system, you might want to give it a few moments to get ready, before installing the CNI
+#sleep 30
+
 # Installing Calico as Container Network Interface, as recommended in the documentation here:
 # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network
 kubectl apply -f https://docs.projectcalico.org/v3.16/manifests/calico.yaml
-
