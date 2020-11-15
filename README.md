@@ -273,10 +273,6 @@ loadBalancers:
     address: 192.168.1.25
 ```
 
-```
-thecodewithin@k8sclp02:~$ docker run -it --rm plndr/kube-vip:0.1.1 /kube-vip sample manifest     | sed "s|plndr/kube-vip:'|plndr/kube-vip:0.1.1'|"     | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
-```
-
 And for the third one:
 
 ```
@@ -315,10 +311,6 @@ loadBalancers:
     address: 192.168.1.24
   - port: 6444
     address: 192.168.1.25
-```
-
-```
-thecodewithin@k8sclp03:~$ docker run -it --rm plndr/kube-vip:0.1.1 /kube-vip sample manifest     | sed "s|plndr/kube-vip:'|plndr/kube-vip:0.1.1'|"     | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
 ```
 
 Now we can join the managers to the cluster.
@@ -396,6 +388,12 @@ Run 'kubectl get nodes' to see this node join the cluster.
 thecodewithin@k8sclp02:~$ mkdir -p $HOME/.kube
 thecodewithin@k8sclp02:~$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 thecodewithin@k8sclp02:~$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+And finally create the manifest, so kube-vip will start up together with the cluster.
+
+```
+thecodewithin@k8sclp02:~$ docker run -it --rm plndr/kube-vip:0.1.1 /kube-vip sample manifest     | sed "s|plndr/kube-vip:'|plndr/kube-vip:0.1.1'|"     | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
 ```
 
 And then repeat for the third one.
