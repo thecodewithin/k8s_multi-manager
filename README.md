@@ -27,7 +27,7 @@ The hosts:
 |Node | 192.168.1.26 | k8sclp04 |
 |Node | 192.168.1.27 | k8sclp05 |
 |Node | 192.168.1.28 | k8sclp06 |
-|VIP | 192.168.1.130 | k8sclps1 |
+|VIP | 192.168.1.20 | k8sclps1 |
 
 ## TL;DR;
 
