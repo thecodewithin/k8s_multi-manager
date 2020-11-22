@@ -953,10 +953,10 @@ Apply.
 kubectl apply -f cheese-ingress.yaml
 ```
 
-Now you should be able to access any of the three cheeses from a browser in any computer on your 192.168.1.0/24 network by pointing it to stilton.192.168.1.30.nip.io, cheddar.192.168.1.30.nip.io or wensleydale.192.168.1.30.nip.io
+Now you should be able to access any of the three cheeses from a browser in any computer on your 192.168.1.0/24 network by pointing it to stilton.192.168.1.30.nip.io, cheddar.192.168.1.30.nip.io or wensleydale.192.168.1.30.nip.io.
 
 ## Congratulations!
 
-You have deployed a multi-master, multi-node Kubernetes cluster with `kubeadm`, using `kube-vip` for the control panel's VIP, cilium as CNI, MetalLB as Load Balancer and Traefik, and have tested the platform by deploying some cheesy services and accessing them from the network outside the cluster.
+You have deployed a multi-master, multi-node Kubernetes cluster with `kubeadm`, using *kube-vip* for the control panel's VIP, *cilium* as CNI, *MetalLB* as Load Balancer and *Traefik*, and have tested the platform by deploying some cheesy services and accessing them from your network outside the cluster.
 
 The platform is now ready for some real work.
