@@ -7,19 +7,14 @@
 #
 
 # Creating a kube-vip manifest so the software load balancer will start with the cluster
-docker run -it --rm plndr/kube-vip:0.1.1 /kube-vip sample manifest     | sed "s|plndr/kube-vip:'|plndr/kube-vip:0.1.1'|"     | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
+#docker run -it --rm plndr/kube-vip:0.1.1 /kube-vip sample manifest     | sed "s|plndr/kube-vip:'|plndr/kube-vip:0.1.1'|"     | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
+sudo docker run -it --rm plndr/kube-vip:0.2.0 sample manifest | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
 
 # Initializing the cluster
-sudo kubeadm init --pod-network-cidr=10.100.0.0/16 --control-plane-endpoint "k8sclps1:8443" --apiserver-bind-port 6444 --upload-certs
+sudo kubeadm init --pod-network-cidr=10.100.0.0/16 --control-plane-endpoint "192.168.1.20:8443" --apiserver-bind-port 6444 --upload-certs
 
 # Allowing your regular user to interact with the cluster 
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-# Depending on your system, you might want to give it a few moments to get ready, before installing the CNI
-#sleep 30
-
-# Installing Calico as Container Network Interface, as recommended in the documentation here:
-# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network
-kubectl apply -f https://docs.projectcalico.org/v3.16/manifests/calico.yaml

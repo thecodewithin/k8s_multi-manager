@@ -12,13 +12,17 @@ apt -y dist-upgrade
 apt -y full-upgrade
 
 # Install a few niceties. Skip those that do not apply to your case
-apt install -y qemu-guest-agent apt-transport-https git curl wget ncat bash-completion
+apt install -y qemu-guest-agent apt-transport-https git curl wget ncat bash-completion nfs-client
 
 # Prepare the firewall as per
 # https://github.com/rancher/k3s/issues/24#issuecomment-668315466
 # Adapt the IPs according to your choice of `pod-network-cidr`
 iptables -I INPUT 1 -i cni0 -s 10.100.0.0/16 -j ACCEPT
 iptables -I FORWARD 1 -s 10.100.0.0/15 -j ACCEPT
+# Adapt the IPs according to your choice of `apiserver-advertise-address`
+# This is the default range
+iptables -I INPUT 1 -i cni0 -s 10.96.0.0/16 -j ACCEPT
+iptables -I FORWARD 1 -s 10.96.0.0/15 -j ACCEPT
 
 # Make the rules permanent
 iptables-save > /etc/iptables.up.rules
@@ -32,7 +36,7 @@ chmod +x /etc/network/if-pre-up.d/iptables
 # Install docker the easy way
 curl https://get.docker.com | bash
 
-# Optional. Uncomment if you want to execute `docker` commands without sudo
+# Optional. Recommended. Uncomment if you want to execute `docker` commands without sudo
 # Substitute your non-root user for "<your-user>" 
 #usermod -aG docker <your-user>
 
