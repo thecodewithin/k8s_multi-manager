@@ -957,6 +957,6 @@ Now you should be able to access any of the three cheeses from a browser in any 
 
 ## Congratulations!
 
-You have deployed a multi-master, multi-node Kubernetes cluster with `kubeadm`, using *kube-vip* for the control panel's VIP, *cilium* as CNI, *MetalLB* as Load Balancer and *Traefik*, and have tested the platform by deploying some cheesy services and accessing them from your network outside the cluster.
+You have deployed a multi-master, multi-node Kubernetes cluster with `kubeadm`, using ***kube-vip*** for the control panel's VIP, ***Cilium*** as CNI, ***MetalLB*** as load balancer and ***Traefik*** as ingress controller, and have tested the platform by deploying some cheesy services and accessing them from your network outside the cluster.
 
 The platform is now ready for some real work.
