@@ -692,7 +692,7 @@ helm repo add traefik https://helm.traefik.io/traefik
 helm fetch traefik/traefik
 ```
 
-Edit `values.yaml`. Go to the `ingressRoute:` and make sure it is enabled, and add an annotation:
+Edit `values.yaml`. Go to the `ingressRoute:`, make sure it is enabled and add an annotation:
 
 ```
 # Create an IngressRoute for the dashboard
@@ -707,7 +707,7 @@ ingressRoute:
     labels: {}
 ```
 
-Now define the ingressclass by supplying an additiona argument:
+Now define the ingressclass by supplying an additional argument:
 
 ```
 #additionalArguments: []
@@ -739,7 +739,7 @@ service:
   externalIPs: []
     # - 1.2.3.4
 ```
-And finally, enable persistence, configure `accessMode` and `storageClass`:
+And finally, enable persistence and configure `accessMode` and `storageClass`:
 
 ```
 persistence:
@@ -955,8 +955,8 @@ kubectl apply -f cheese-ingress.yaml
 
 Now you should be able to access any of the three cheeses from a browser in any computer on your 192.168.1.0/24 network by pointing it to stilton.192.168.1.30.nip.io, cheddar.192.168.1.30.nip.io or wensleydale.192.168.1.30.nip.io
 
-## Conclusion
+## Congratulations!
 
-Congratulations! You have deployed a multi-master, multi-node Kubernetes cluster with `kubeadm`, using `kube-vip` for the control panel's VIP, cilium as CNI, MetalLB as Load Balancer and Traefik, and have tested the platform by deploying some cheesy services and accessing them from the network outside the cluster.
+You have deployed a multi-master, multi-node Kubernetes cluster with `kubeadm`, using `kube-vip` for the control panel's VIP, cilium as CNI, MetalLB as Load Balancer and Traefik, and have tested the platform by deploying some cheesy services and accessing them from the network outside the cluster.
 
 The platform is now ready for some real work.
