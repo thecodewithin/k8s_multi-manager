@@ -7,12 +7,12 @@
 
 # Business as usual, to begin with
 apt update
-apt -y upgrade
-apt -y dist-upgrade
 apt -y full-upgrade
+apt -y autoremove
+apt clean
 
 # Install a few niceties. Skip those that do not apply to your case
-apt install -y qemu-guest-agent apt-transport-https git curl wget ncat bash-completion nfs-client
+apt install -y vim qemu-guest-agent apt-transport-https git curl wget ncat bash-completion nfs-client
 
 # Prepare the firewall as per
 # https://github.com/rancher/k3s/issues/24#issuecomment-668315466
@@ -34,11 +34,26 @@ EOF
 chmod +x /etc/network/if-pre-up.d/iptables 
 
 # Install docker the easy way
-curl https://get.docker.com | bash
+curl https://get.docker.com | sudo bash
 
-# Optional. Recommended. Uncomment if you want to execute `docker` commands without sudo
+# Configure the IP range for the pods and the runtime for K8s
+cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+   "bip": "10.100.0.1/24",
+   "exec-opts": ["native.cgroupdriver=systemd"],
+   "log-driver": "json-file",
+   "log-opts": {
+     "max-size": "100m"
+   },
+   "storage-driver": "overlay2"
+ }
+EOF
+
+systemctl restart docker
+
+# Optional. Uncomment if you want to execute `docker` commands without sudo
 # Substitute your non-root user for "<your-user>" 
-#usermod -aG docker <your-user>
+usermod -aG docker jordi
 
 # This comes handy if you are going to deploy an ELK stack in this cluster.
 # Feel free to comment it out otherwise.
