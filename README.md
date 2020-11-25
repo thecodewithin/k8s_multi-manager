@@ -587,7 +587,10 @@ sudo apt-get install helm
 Since we do not want to deploy all our services on the default namespace, let's create a few.
 
 ```console
-kubectl create ns loadbalancer storage monitoring harbor
+kubectl create ns networking
+kubectl create ns storage
+kubectl create ns monitoring
+kubectl create ns harbor
 ```
 
 ## Install MetalLB
