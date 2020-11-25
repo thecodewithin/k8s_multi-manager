@@ -72,12 +72,12 @@ Either way, I recommend you take a look at the code to see what it's doing. It's
 
 Create a configuraton file for the kube-apiserver load balancer. Check the docs here: https://kube-vip.io/control-plane/ and here: https://github.com/kubernetes/kubeadm/blob/master/docs/ha-considerations.md#kube-vip To do so, create the directory where the config is expected
 
-```
+```console
 thecodewithin@k8sclp01:~$ sudo mkdir /etc/kube-vip
 ```
 Then create a file named `config.yaml` whith the following contents:
 
-```
+```console
 thecodewithin@k8sclp01:~$ sudo vi /etc/kube-vip/config.yaml 
 AddPeersAsBackends: false
 Address: ""
@@ -150,7 +150,7 @@ This script will
 
 When the cluster is initiated with `kubeadm init <...>` the output will contain the necessary commands to join the other managers, as well as the nodes. It will look something like this:
 
-```
+```console
 W1031 19:07:41.748567  127070 configset.go:348] WARNING: kubeadm cannot validate component configs for API groups [kubelet.config.k8s.io kubeproxy.config.k8s.io]
 [init] Using Kubernetes version: v1.19.3
 [preflight] Running pre-flight checks
@@ -246,7 +246,7 @@ Take note of the two `kubeadm join <...>` commands. You'll need them in a moment
 
 Give the newly started cluster a few moments and then check whether all the pods are running. Run this command as a regular user:
 
-```
+```console
 thecodewithin@k8sclp01:~$ kubectl get pods --all-namespaces
 ```
 You should see an output similar to this:
@@ -272,7 +272,7 @@ Then create the manifests. See examples below.
 
 This is for the second manager:
 
-```
+```console
 thecodewithin@k8sclp02:~$ sudo mkdir /etc/kube-vip
 
 thecodewithin@k8sclp02:~$ sudo vi /etc/kube-vip/config.yaml 
@@ -338,7 +338,7 @@ VIPCIDR: ""
 
 And for the third one:
 
-```
+```console
 thecodewithin@k8sclp03:~$ sudo mkdir /etc/kube-vip
 
 thecodewithin@k8sclp03:~$ sudo vi /etc/kube-vip/config.yaml
@@ -406,7 +406,7 @@ Now we can join the managers to the cluster.
 
 First on the second manager:
 
-```
+```console
 thecodewithin@k8sclp02:~$ sudo kubeadm join k8sclps1:8443 --token rgh8a9.vh1mzx5l9m79c38a     --discovery-token-ca-cert-hash sha256:b78bbe13037b9bb03640051cdf1d5037566db5b31e6a5dd80c6ca5274ad72094     --control-plane --certificate-key 403b0f2b3947be4160b0f31d090930ba239fca1c2b6024c0b1b71dabfc5b5fb6
 [preflight] Running pre-flight checks
 	[WARNING IsDockerSystemdCheck]: detected "cgroupfs" as the Docker cgroup driver. The recommended driver is "systemd". Please follow the guide at https://kubernetes.io/docs/setup/cri/
@@ -473,7 +473,7 @@ To start administering your cluster from this node, you need to run the followin
 Run 'kubectl get nodes' to see this node join the cluster.
 ```
 
-```
+```console
 thecodewithin@k8sclp02:~$ mkdir -p $HOME/.kube
 thecodewithin@k8sclp02:~$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 thecodewithin@k8sclp02:~$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
@@ -481,7 +481,7 @@ thecodewithin@k8sclp02:~$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 And finally create the manifest, so kube-vip will start up together with the cluster.
 
-```
+```console
 thecodewithin@k8sclp02:~$ sudo docker run -it --rm plndr/kube-vip:0.2.0 sample manifest | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
 ```
 
@@ -489,7 +489,7 @@ And then repeat for the third one.
 
 Finally, install the CNI. The parameter `cluster-pool-ipv4-cidr` in the cilium config has to be equal to our `pod-network-cidr`.
 
-```
+```console
 curl https://raw.githubusercontent.com/cilium/cilium/v1.9/install/kubernetes/quick-install.yaml | sed -e 's/10.0.0.0\/8/10.100.0.0\/16/g' | kubectl apply -f -
 ```
 
@@ -497,7 +497,7 @@ curl https://raw.githubusercontent.com/cilium/cilium/v1.9/install/kubernetes/qui
 
 On each of them, execute the `kubeadm join <...>` command. Here's the example for the first node:
 
-```
+```console
 thecodewithin@k8sclp04:~$ sudo kubeadm join k8sclps1:8443 --token rgh8a9.vh1mzx5l9m79c38a     --discovery-token-ca-cert-hash sha256:b78bbe13037b9bb03640051cdf1d5037566db5b31e6a5dd80c6ca5274ad72094
 [preflight] Running pre-flight checks
 	[WARNING IsDockerSystemdCheck]: detected "cgroupfs" as the Docker cgroup driver. The recommended driver is "systemd". Please follow the guide at https://kubernetes.io/docs/setup/cri/
@@ -520,7 +520,7 @@ Repeat for each of your other nodes.
 
 When finished, check that all the nodes have been added to the cluster. Go back to one of the managers and list the cluster's nodes:
 
-```
+```console
 thecodewithin@k8sclp01:~$ kubectl get nodes
 NAME       STATUS   ROLES    AGE   VERSION
 k8sclp01   Ready    master   9d    v1.19.3
@@ -534,7 +534,7 @@ k8sclp06   Ready    <none>   9d    v1.19.3
 
 And check that all expected pods are up and running. You should see an output similar to this one:
 
-```
+```console
 thecodewithin@k8sclp01:~$ kubectl get pods -o wide --all-namespaces
 NAMESPACE     NAME                                                 READY   STATUS    RESTARTS   AGE     IP             NODE       NOMINATED NODE   READINESS GATES
 kube-system   cilium-7v4hp                                         1/1     Running   7          25h     192.168.1.25   k8sclp05   <none>           <none>
@@ -576,7 +576,7 @@ Done!
 
 Install Helm from packages following instructions here: https://helm.sh/docs/intro/install/#from-apt-debianubuntu
 
-```
+```console
 curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
 sudo apt-get install apt-transport-https --yes
 echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
@@ -584,11 +584,17 @@ sudo apt-get update
 sudo apt-get install helm
 ```
 
+Since we do not want to deploy all our services on the default namespace, let's create a few.
+
+```console
+kubectl create ns loadbalancer storage monitoring harbor
+```
+
 ## Install MetalLB
 
 Install MetalLB using the Bitnami Helm repo. Download the repo and edit `values.yaml` to add the Layer 2 configuration
 
-```
+```console
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm fetch bitnami/metallb
 ```
@@ -621,8 +627,8 @@ Only one IP is needed for our purposes here, but I reserved a range of 10 IPs, f
 
 Now, install the chart:
 
-```
-helm install metallb -f values.yaml .
+```console
+helm install metallb --namespace loadbalancer -f values.yaml .
 ```
 
 Don't miss the dot at the end!
@@ -631,7 +637,7 @@ Don't miss the dot at the end!
 
 Install the nfs provisioner from superteleman's hem chart. Download it and edit `values.yaml`.
 
-```
+```console
 helm repo add supertetelman https://supertetelman.github.io/charts/
 helm fetch supertetelman/nfs-client-provisioner
 ```
@@ -679,15 +685,15 @@ storageClass:
 
 Now, install the chart:
 
-```
-helm install nfs-client -f values.yaml .
+```console
+helm install nfs-client --namespace storage -f values.yaml .
 ```
 
 ## Install Traefik 2.3.3
 
 Again, install from helm by fetching and editing. 
 
-```
+```console
 helm repo add traefik https://helm.traefik.io/traefik
 helm fetch traefik/traefik
 ```
@@ -757,8 +763,8 @@ persistence:
 
 Install the chart:
 
-```
-helm install traefik -f values.yaml .
+```console
+helm install traefik --namespace loadbalancer -f values.yaml .
 ```
 
 ## Cheese!
@@ -768,6 +774,7 @@ To top it all, let's sprinkle some cheese all over it!
 Let's deploy some pods, services and an ingress so the platform can be tested.
 
 To deploy the pods, copy this yaml code into `cheese-deployments.yaml`.
+
 ```
 ---
 kind: Deployment
@@ -850,7 +857,7 @@ spec:
 ```
 Apply the deployment:
 
-```
+```console
 kubectl apply -f cheese-deployments.yaml
 ```
 
@@ -901,7 +908,7 @@ spec:
 ```
 Ready to apply them:
 
-```
+```console
 kubectl apply -f cheese-services.yaml
 ```
 
@@ -949,7 +956,7 @@ spec:
 ```
 Apply.
 
-```
+```console
 kubectl apply -f cheese-ingress.yaml
 ```
 
