@@ -48,6 +48,7 @@ The hosts:
  1. Install MetalLB
  1. Install nfs-client-provisioner
  1. Install Traefik 2.3.3
+ 1. Install External-DNS
  1. Sprinkle some cheese on top of it
 
 ## Set up the Kubernetes cluster, step by step
@@ -79,6 +80,8 @@ Then create a file named `config.yaml` whith the following contents:
 
 ```console
 thecodewithin@k8sclp01:~$ sudo vi /etc/kube-vip/config.yaml 
+```
+```yaml
 AddPeersAsBackends: false
 Address: ""
 BGPConfig:
@@ -251,7 +254,7 @@ thecodewithin@k8sclp01:~$ kubectl get pods --all-namespaces
 ```
 You should see an output similar to this:
 
-```
+```console
 NAMESPACE     NAME                                     READY   STATUS    RESTARTS   AGE
 kube-system   coredns-f9fd979d6-hnt2d                  0/1     Pending   0          2m49s
 kube-system   coredns-f9fd979d6-tvws7                  0/1     Pending   0          2m49s
@@ -262,6 +265,7 @@ kube-system   kube-proxy-f5h8k                         1/1     Running   0      
 kube-system   kube-scheduler-k8sclp01                 1/1     Running   0          2m58s
 kube-system   kube-vip-k8sclp01                       1/1     Running   0          2m57s
 ```
+
 The two `coredns` pods will not start until the CNI is properly installed.
 
 ### Add the other managers to the control plane
@@ -276,6 +280,8 @@ This is for the second manager:
 thecodewithin@k8sclp02:~$ sudo mkdir /etc/kube-vip
 
 thecodewithin@k8sclp02:~$ sudo vi /etc/kube-vip/config.yaml 
+```
+```yaml
 AddPeersAsBackends: false
 Address: ""
 BGPConfig:
@@ -342,6 +348,8 @@ And for the third one:
 thecodewithin@k8sclp03:~$ sudo mkdir /etc/kube-vip
 
 thecodewithin@k8sclp03:~$ sudo vi /etc/kube-vip/config.yaml
+```
+```yaml
 AddPeersAsBackends: false
 Address: ""
 BGPConfig:
@@ -473,13 +481,15 @@ To start administering your cluster from this node, you need to run the followin
 Run 'kubectl get nodes' to see this node join the cluster.
 ```
 
+Get your non-root user ready to operate `kubectl` commands:
+
 ```console
 thecodewithin@k8sclp02:~$ mkdir -p $HOME/.kube
 thecodewithin@k8sclp02:~$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 thecodewithin@k8sclp02:~$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
-And finally create the manifest, so kube-vip will start up together with the cluster.
+And finally create the manifest, so *kube-vip* will start up together with the cluster.
 
 ```console
 thecodewithin@k8sclp02:~$ sudo docker run -it --rm plndr/kube-vip:0.2.0 sample manifest | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
@@ -490,7 +500,7 @@ And then repeat for the third one.
 Finally, install the CNI. The parameter `cluster-pool-ipv4-cidr` in the cilium config has to be equal to our `pod-network-cidr`.
 
 ```console
-curl https://raw.githubusercontent.com/cilium/cilium/v1.9/install/kubernetes/quick-install.yaml | sed -e 's/10.0.0.0\/8/10.100.0.0\/16/g' | kubectl apply -f -
+thecodewithin@k8sclp01:~$ curl https://raw.githubusercontent.com/cilium/cilium/v1.9/install/kubernetes/quick-install.yaml | sed -e 's/10.0.0.0\/8/10.100.0.0\/16/g' | kubectl apply -f -
 ```
 
 ### Add the nodes to the cluster
@@ -530,7 +540,6 @@ k8sclp04   Ready    <none>   9d    v1.19.3
 k8sclp05   Ready    <none>   9d    v1.19.3
 k8sclp06   Ready    <none>   9d    v1.19.3
 ```
-
 
 And check that all expected pods are up and running. You should see an output similar to this one:
 
@@ -577,20 +586,18 @@ Done!
 Install Helm from packages following instructions here: https://helm.sh/docs/intro/install/#from-apt-debianubuntu
 
 ```console
-curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
-sudo apt-get install apt-transport-https --yes
-echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
-sudo apt-get update
-sudo apt-get install helm
+thecodewithin@k8sclp01:~$ curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+thecodewithin@k8sclp01:~$ sudo apt-get install apt-transport-https --yes
+thecodewithin@k8sclp01:~$ echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+thecodewithin@k8sclp01:~$ sudo apt-get update
+thecodewithin@k8sclp01:~$ sudo apt-get install helm
 ```
 
 Since we do not want to deploy all our services on the default namespace, let's create a few.
 
 ```console
-kubectl create ns networking
-kubectl create ns storage
-kubectl create ns monitoring
-kubectl create ns harbor
+thecodewithin@k8sclp01:~$ kubectl create ns networking
+thecodewithin@k8sclp01:~$ kubectl create ns storage
 ```
 
 ## Install MetalLB
@@ -598,13 +605,13 @@ kubectl create ns harbor
 Install MetalLB using the Bitnami Helm repo. Download the repo and edit `values.yaml` to add the Layer 2 configuration
 
 ```console
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm fetch bitnami/metallb
+thecodewithin@k8sclp01:~/charts$ helm repo add bitnami https://charts.bitnami.com/bitnami
+thecodewithin@k8sclp01:~/charts$ helm fetch bitnami/metallb
 ```
 
-Now `cd` into the `metallb` directory, and edit `values.yaml`. Go to the `configInline:` section and add your config, like so:
+Now unzip the file, `cd` into the `metallb` directory, and edit `values.yaml`. Go to the `configInline:` section and add your config, like so:
 
-```
+```yaml
 configInline:
   # The address-pools section lists the IP addresses that MetalLB is
   # allowed to allocate, along with settings for how to advertise
@@ -631,7 +638,7 @@ Only one IP is needed for our purposes here, but I reserved a range of 10 IPs, f
 Now, install the chart:
 
 ```console
-helm install metallb --namespace loadbalancer -f values.yaml .
+thecodewithin@k8sclp01:~/charts/metallb$ helm install metallb --namespace networking -f values.yaml .
 ```
 
 Don't miss the dot at the end!
@@ -641,13 +648,13 @@ Don't miss the dot at the end!
 Install the nfs provisioner from superteleman's hem chart. Download it and edit `values.yaml`.
 
 ```console
-helm repo add supertetelman https://supertetelman.github.io/charts/
-helm fetch supertetelman/nfs-client-provisioner
+thecodewithin@k8sclp01:~/charts$ helm repo add supertetelman https://supertetelman.github.io/charts/
+thecodewithin@k8sclp01:~/charts$ helm fetch supertetelman/nfs-client-provisioner
 ```
 
-Now `cd` into the directory and edit `values.yaml` to set up your nfs share. Configure the `nfs:` and `storageClass` parts:
+Now unzip the file, `cd` into the directory and edit `values.yaml` to set up your nfs share. Configure the `nfs:` and `storageClass` parts:
 
-```
+```yaml
 nfs:
   server: 192.168.1.xxx
   path: /data/virtuals/storage
@@ -655,6 +662,7 @@ nfs:
     - nolock
     - soft
     - rw
+    - intr
 
 # For creating the StorageClass automatically:
 storageClass:
@@ -689,7 +697,7 @@ storageClass:
 Now, install the chart:
 
 ```console
-helm install nfs-client --namespace storage -f values.yaml .
+thecodewithin@k8sclp01:~/charts/nfs-client-provisioner$ helm install nfs-client --namespace storage -f values.yaml .
 ```
 
 ## Install Traefik 2.3.3
@@ -697,36 +705,47 @@ helm install nfs-client --namespace storage -f values.yaml .
 Again, install from helm by fetching and editing. 
 
 ```console
-helm repo add traefik https://helm.traefik.io/traefik
-helm fetch traefik/traefik
+thecodewithin@k8sclp01:~/charts$ helm repo add traefik https://helm.traefik.io/traefik
+thecodewithin@k8sclp01:~/charts$ helm fetch traefik/traefik
 ```
 
-Edit `values.yaml`. Go to the `ingressRoute:`, make sure it is enabled and add an annotation:
+Unzip the file, `cd` into the directory and edit `values.yaml`. In order for External-DNS to be able to see your Traefik, you need to enable `publishedService` under `providers`:
 
-```
-# Create an IngressRoute for the dashboard
-ingressRoute:
-  dashboard:
+```yaml
+providers:
+  kubernetesCRD:
     enabled: true
-    # Additional ingressRoute annotations (e.g. for kubernetes.io/ingress.class)
-    #annotations: {}
-    annotations: 
-      kubernetes.io/ingress.class: traefik-internal
-    # Additional ingressRoute labels (e.g. for filtering IngressRoute by custom labels)
-    labels: {}
+    namespaces: []
+      # - "default"
+  kubernetesIngress:
+    enabled: true
+    namespaces: []
+      # - "default"
+    # IP used for Kubernetes Ingress endpoints
+    publishedService:
+      #enabled: false
+      enabled: true
+      # Published Kubernetes Service to copy status from. Format: namespace/servicename
+      # By default this Traefik service
+      # pathOverride: ""
 ```
 
 Now define the ingressclass by supplying an additional argument:
 
-```
+```yaml
 #additionalArguments: []
 additionalArguments:
+  - "--api.insecure=true"
+  - "--api.dashboard=true"
   - "--providers.kubernetesingress.ingressclass=traefik-internal"
-#  - "--log.level=DEBUG"
+  - "--log.level=DEBUG"
 ```
+
+To access the console, besides adding `--api.insecure=true` and `--api.dashboard=true` to your arguments, as seen above, toggle `expose` to `enable` for port 9000, under `ports: traefik`.
+
 Next add the load balancer IP to the service's spec:
 
-```
+```yaml
 service:
   enabled: true
   type: LoadBalancer
@@ -748,9 +767,10 @@ service:
   externalIPs: []
     # - 1.2.3.4
 ```
+
 And finally, enable persistence and configure `accessMode` and `storageClass`:
 
-```
+```yaml
 persistence:
   #enabled: false
   enabled: true
@@ -764,11 +784,224 @@ persistence:
   # subPath: "" # only mount a subpath of the Volume into the pod
 ```
 
-Install the chart:
+Of course, check the rest of the file and adapt any parameters to your needs. When you are ready, install the chart:
 
 ```console
-helm install traefik --namespace loadbalancer -f values.yaml .
+thecodewithin@k8sclp01:~/charts/traefik$ helm install traefik --namespace networking -f values.yaml .
 ```
+
+You won't see the dashboard at this stage, yet. There are two of tings missing. The first one is an `ingress` for your traefik service. Here's my example:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik-internal
+spec:
+  rules:
+  - host: traefik.mydomain.local
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: traefik
+            port:
+              number: 9000
+```
+
+Activate it with 
+
+```console
+thecodewithin@k8sclp01:~/charts/traefik$ kubectl apply -f dashboard-traefik.yaml
+```
+or whatever name you gave it.
+
+And the second missing thing is *External-DNS*, responsible for converting *traefik.mydomain.local* into an IP. Let's get to it.
+
+## Install External-DNS
+
+This is a bit more tricky. You need to have access to a DNS server of one of the types supported by External-DNS. Check the list, and instructions for each one, here: https://github.com/kubernetes-sigs/external-dns/tree/master/docs/tutorials
+
+In this example, I configured a Bind server with external-dns provider [RFC2136](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/rfc2136.md)
+
+Configuring Bind is beyond the scope of this document, but I'll provide my configuration as example. This is my `named.conf.options`, on `dnsbindserver`:
+
+```
+acl "trusted" {
+        192.168.1.0/24;   
+        192.168.3.0/24;   
+        127.0.0.1;
+};
+
+options {
+        directory "/var/cache/bind";
+
+        recursion yes;                 # enables resursive queries
+        allow-recursion { trusted; };  # allows recursive queries from "trusted" clients
+        listen-on { <IP to my dnsbindserver>; };   # ns1 private IP address - listen on private network only
+        allow-transfer { none; };      # disable zone transfers by default
+
+        forwarders {
+                <IP to my internet router acting as dns>;
+         };
+
+listen-on-v6 { none; };
+};
+```
+
+I created a key with `tsig-keygen` and pasted the output into a file that I namded `externaldns-key`:
+
+```console
+root@dnsbindserver:/etc/bind:$ tsig-keygen -a hmac-sha256 externaldns-key
+key "externaldns-key" {
+	algorithm hmac-sha256;
+	secret "someverylongsupersecretgibberishofasecurityK";
+};
+```
+
+This is my `named.conf.local`:
+
+```
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include "/etc/bind/zones.rfc1918";
+include "/etc/bind/externaldns-key";
+
+zone "mydomain.local" {
+        type master;
+        file "/var/cache/bind/zones/db.mydomain";
+        allow-transfer {
+                key "externaldns-key";
+        };
+        update-policy {
+                grant externaldns-key zonesub ANY;
+        };
+};
+
+zone "168.192.in-addr.arpa" {
+        type master;
+        file "/var/cache/bind/zones/db.192.168";  # 192.168.0.0/16 subnet
+        allow-transfer { <IP to my internet router acting as dns>; };  # ns2 private IP address - secondary 
+};
+
+```
+
+And I created my zones files under `/var/cache/bind/` so that user `bind` can write to the files:
+
+```console
+root@dnsbindserver:/var/cache/bind$ ls -ltr
+total 8
+-rw-r--r-- 1 bind bind  221 Nov 27 14:31 managed-keys.bind
+drwxr-xr-x 2 bind bind 4096 Dec  7 12:17 zones
+root@dnsbindserver:/var/cache/bind$ ls -ltr zones/
+total 20
+-rw-r--r-- 1 bind bind 2528 Dec  7 07:40 db.192.168
+-rw-r--r-- 1 bind bind  554 Dec  7 09:20 k8s.zone
+-rw-r--r-- 1 bind bind 4576 Dec  7 12:05 db.mydomain.jnl
+-rw-r--r-- 1 bind bind 3831 Dec  7 12:17 db.mydomain
+```
+
+Now, over to our cluster, install from helm by fetching and editing. 
+
+```console
+thecodewithin@k8sclp01:~/charts$ helm repo add bitnami https://charts.bitnami.com/bitnami
+thecodewithin@k8sclp01:~/charts$ helm fetch bitnami/external-dns
+```
+
+Now unzip the file, `cd` into the directory and edit `values-production.yaml`. Change your provider to `rfc2136`:
+
+```yaml
+## DNS provider where the DNS records will be created. Available providers are:
+## - alibabacloud, aws, azure, cloudflare, coredns, designate, digitalocoean, google, infoblox, rfc2136, transip
+##
+#provider: aws
+provider: rfc2136
+```
+
+Scroll down until you get to the configuration for this provider, and configure its parameters:
+
+```yaml
+## RFC 2136 configuration to be set via arguments/env. variables
+##
+rfc2136:
+  host: "<IP to my dnsbindserver>"
+  port: 53
+  zone: "mydomain.local"
+  tsigSecret: "someverylongsupersecretgibberishofasecurityK"
+  tsigSecretAlg: hmac-sha256
+  tsigKeyname: externaldns-key
+  tsigAxfr: true
+  #tsigAxfr: false
+  ## Possible units [ns, us, ms, s, m, h], see more https://golang.org/pkg/time/#ParseDuration
+  minTTL: "0s"
+```
+
+Keep scrolling down, past the other providers' configurations, and activate `dryRun` for now:
+
+```yaml
+## When enabled, prints DNS record changes rather than actually performing them
+##
+#dryRun: false
+dryRun: true
+```
+
+I added a `txtOwnerId`:
+
+```yaml
+## TXT Registry Identifier
+##
+txtOwnerId: "k8s"
+```
+
+To avoid some warnings when installing this helm, change the *rbac*'s version to `v1`:
+
+```yaml
+## RBAC parameteres (clusterRole and clusterRoleBinding)
+## https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+##
+rbac:
+  create: true
+  ## Deploys ClusterRole by Default
+  clusterRole: true
+  ## RBAC API version
+  ##
+  #apiVersion: v1beta1
+  apiVersion: v1
+  ## Podsecuritypolicy
+  ##
+  pspEnabled: false
+```
+
+Whith this we should be ready to go. Install this helm in `dryRun` mode:
+
+```console
+thecodewithin@k8sclp01:~/charts/external-dns$ helm -n networking install external-dns -f values-production.yaml .
+```
+
+If everything goes well, delete the chart with 
+
+```console
+thecodewithin@k8sclp01:~/charts/external-dns$ helm -n networking delete external-dns
+```
+
+deactivate `dryRun` by editing `values-production.yaml`, and install again, for real.
+
+You should now see an entry like this in your `/var/cache/bind/zones/db.mydomain`, over at your dns server:
+
+```
+traefik			A	192.168.1.31
+			TXT	"heritage=external-dns,external-dns/owner=k8s,external-dns/resource=service/networking/traefik"
+```
+
+And the *traefik* dashboard should be accessible at http://traefik.mydomain.local.
 
 ## Cheese!
 
@@ -778,7 +1011,7 @@ Let's deploy some pods, services and an ingress so the platform can be tested.
 
 To deploy the pods, copy this yaml code into `cheese-deployments.yaml`.
 
-```
+```yaml
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -861,12 +1094,12 @@ spec:
 Apply the deployment:
 
 ```console
-kubectl apply -f cheese-deployments.yaml
+thecodewithin@k8sclp01:~/cheese$ kubectl apply -f cheese-deployments.yaml
 ```
 
 The services are defined in `cheese-services.yaml`
 
-```
+```yaml
 ---
 apiVersion: v1
 kind: Service
@@ -912,12 +1145,12 @@ spec:
 Ready to apply them:
 
 ```console
-kubectl apply -f cheese-services.yaml
+thecodewithin@k8sclp01:~/cheese$ kubectl apply -f cheese-services.yaml
 ```
 
 And finally the ingress. `cheese-ingress.yaml`
 
-```
+```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -926,7 +1159,7 @@ metadata:
     kubernetes.io/ingress.class: traefik-internal
 spec:
   rules:
-  - host: stilton.192.168.1.30.nip.io
+  - host: stilton.mydomain.local
     http:
       paths:
       - pathType: Prefix
@@ -936,7 +1169,7 @@ spec:
             name: stilton
             port: 
               number: 80
-  - host: cheddar.192.168.1.30.nip.io
+  - host: cheddar.mydomain.local
     http:
       paths:
       - pathType: Prefix
@@ -946,7 +1179,7 @@ spec:
             name: cheddar
             port: 
               number: 80
-  - host: wensleydale.192.168.1.30.nip.io
+  - host: wensleydale.mydomain.local
     http:
       paths:
       - pathType: Prefix
@@ -960,13 +1193,13 @@ spec:
 Apply.
 
 ```console
-kubectl apply -f cheese-ingress.yaml
+thecodewithin@k8sclp01:~/cheese$ kubectl apply -f cheese-ingress.yaml
 ```
 
-Now you should be able to access any of the three cheeses from a browser in any computer on your 192.168.1.0/24 network by pointing it to stilton.192.168.1.30.nip.io, cheddar.192.168.1.30.nip.io or wensleydale.192.168.1.30.nip.io.
+Now you should be able to access any of the three cheeses from a browser in any computer on your 192.168.1.0/24 network by pointing it to http:/stilton.mydomain.local, http:/cheddar.mydomain.local or http:/wensleydale.mydomain.local. Check your `/var/cache/bind/zones/db.mydomain` over at your dns server for new entries as well.
 
 ## Congratulations!
 
-You have deployed a multi-master, multi-node Kubernetes cluster with `kubeadm`, using ***kube-vip*** for the control panel's VIP, ***Cilium*** as CNI, ***MetalLB*** as load balancer and ***Traefik*** as ingress controller, and have tested the platform by deploying some cheesy services and accessing them from your network outside the cluster.
+You have deployed a multi-master, multi-node Kubernetes cluster with `kubeadm`, using ***kube-vip*** for the control panel's VIP, ***Cilium*** as CNI, ***MetalLB*** as load balancer, ***Traefik*** as ingress controller and ***External-DNS*** to synchronize your exposed services with your DNS, and have tested the platform by deploying some cheesy services and accessing them by name from your network outside the cluster.
 
 The platform is now ready for some real work.
