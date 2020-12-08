@@ -55,7 +55,7 @@ The hosts:
 
 ### Before you start
 
-When creating a multi-master Kubernetes cluster, a load balancer for the kube-apiserver is needed, so reserve an IP in your network with a corresponding FQDN. In this example I'll use 192.168.1.20, paired with k8sclps1.example.com.
+When creating a multi-master Kubernetes cluster, a load balancer for the kube-apiserver is needed, so reserve an IP in your network with a corresponding FQDN. In this example I'll use 192.168.1.20, paired with k8sclps1.mydomain.local.
 
 You should also add your non-root user to the `docker` group. You can have `run-prereq.sh` do it for you by uncommenting that line on the script and substituting your user name in it.
 
