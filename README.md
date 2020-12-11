@@ -4,6 +4,66 @@
 
 ***
 
+### Important announcement
+Kubernetes deprecates Docker (`dockershim`, actually) and plans to permanently remove support for it in 1.22, late 2021. Find all the deteails in their blog post named "[Don't Panic: Kubernetes and Docker](https://kubernetes.io/blog/2020/12/02/dont-panic-kubernetes-and-docker/)" and in this [FAQ](https://kubernetes.io/blog/2020/12/02/dockershim-faq/)
+
+If you have deployed a Kubernetes cluster using the instructions below, you can now migrate your runtime from Docker (`dockershim`, actually) to `containerd` in three simple steps (per node).
+
+Login to one of the masters, or the system from which you manage your cluster, and "cordon" one of the nodes, so it will not be assigned any new pods
+
+```console
+thecodewithin@k8sclp01:~$ kubectl cordon k8sclp06
+```
+
+Now, drain it so the pots it was running will be deployed somewhere else
+
+```console
+thecodewithin@k8sclp01:~$ kubectl drain k8sclp06
+```
+
+This might give you an error, with some hints as to what you can drain from your node and what not. You might want to run `kubectl drain` with some options, like so:
+
+```console
+thecodewithin@k8sclp01:~$ kubectl drain k8sclp06 --ignore-daemonsets --delete-local-data
+```
+
+Once the node has been drained, login to that node and run the migration script
+
+```console
+thecodewithin@k8sclp06:~$ sudo ./run-migrateruntime.sh
+```
+
+This script will, in order,
+ 1. upgrade your system, including Docker, to the latest version
+ 1. install a few extra packages needed by `containerd`
+ 1. configure `containerd`
+ 1. configure `kubelet` to use `containerd` as runtime
+ 1. upgrade `kubelet`, `kubeadm` and `kubectl` to the latest version
+
+Once finished, restart the node.
+
+When the node is back up, you can uncordon it
+
+```console
+thecodewithin@k8sclp01:~$ kubectl uncordon k8sclp06
+```
+
+Repeat these steps for each and every node in your cluster, managers and nodes alike. When you are finished, a `kubectl get nodes -o wide` should give you an output like this:
+
+```console
+NAME       STATUS                     ROLES    AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                       KERNEL-VERSION        CONTAINER-RUNTIME
+k8sclp01   Ready                      master   15d   v1.20.0   192.168.1.23   <none>        Debian GNU/Linux 10 (buster)   4.19.0-13-amd64       containerd://1.4.3
+k8sclp02   Ready                      master   15d   v1.20.0   192.168.1.24   <none>        Debian GNU/Linux 10 (buster)   4.19.0-13-amd64       containerd://1.4.3
+k8sclp03   Ready                      master   15d   v1.20.0   192.168.1.25   <none>        Debian GNU/Linux 10 (buster)   4.19.0-13-amd64       containerd://1.4.3
+k8sclp04   Ready                      <none>   15d   v1.20.0   192.168.1.26   <none>        Debian GNU/Linux 10 (buster)   4.19.0-13-amd64       containerd://1.4.3
+k8sclp05   Ready                      <none>   15d   v1.20.0   192.168.1.27   <none>        Debian GNU/Linux 10 (buster)   4.19.0-13-amd64       containerd://1.4.3
+k8sclp06   Ready                      <none>   15d   v1.20.0   192.168.1.28   <none>        Debian GNU/Linux 10 (buster)   4.19.0-13-amd64       containerd://1.4.3
+```
+
+Done.
+
+### Back to our normal program
+
 In this example we are going to deploy a 6 node Kubernetes cluster, 3 managers and 3 nodes, following the official documentation from https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/, a MetalLB load balancer and Traefik v2.3.3
 
 
