@@ -5,9 +5,9 @@
 ***
 
 ### Important announcement
-Kubernetes deprecates Docker (`dockershim`, actually) and plans to permanently remove support for it in 1.22, late 2021. Find all the deteails in their blog post named "[Don't Panic: Kubernetes and Docker](https://kubernetes.io/blog/2020/12/02/dont-panic-kubernetes-and-docker/)" and in this [FAQ](https://kubernetes.io/blog/2020/12/02/dockershim-faq/)
+Kubernetes deprecates Docker (`dockershim`, actually) and plans to permanently remove support for it in 1.22, late 2021. Find all the details in their blog post "[Don't Panic: Kubernetes and Docker](https://kubernetes.io/blog/2020/12/02/dont-panic-kubernetes-and-docker/)" and in this [FAQ](https://kubernetes.io/blog/2020/12/02/dockershim-faq/)
 
-If you have deployed a Kubernetes cluster using the instructions below, you can now migrate your runtime from Docker (`dockershim`, actually) to `containerd` in three simple steps (per node).
+If you have deployed a Kubernetes cluster using the instructions below, you can now migrate your runtime from Docker (`dockershim`, actually) to `containerd` in five simple steps (per node).
 
 Login to one of the masters, or the system from which you manage your cluster, and "cordon" one of the nodes, so it will not be assigned any new pods
 
